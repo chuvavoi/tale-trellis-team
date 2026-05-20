@@ -9,7 +9,7 @@ const navItems = [
   { to: "/profile", label: "Cá nhân", icon: User },
 ] as const;
 
-export function Layout() {
+export function Layout({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   return (
@@ -47,7 +47,7 @@ export function Layout() {
       </header>
 
       <main className="flex-1 pb-24 md:pb-0">
-        <Outlet />
+        {children}
       </main>
 
       {/* Mobile bottom nav */}
