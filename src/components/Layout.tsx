@@ -1,5 +1,6 @@
-import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Home, LayoutGrid, Heart, User, BookOpen } from "lucide-react";
+import type { ReactNode } from "react";
 
 const navItems = [
   { to: "/", label: "Trang chủ", icon: Home },
