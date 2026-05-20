@@ -48,7 +48,7 @@ function Index() {
               </Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-full">
-              <Link to="/catalog" search={{}}>
+              <Link to="/catalog">
                 <Search className="mr-1 size-4" /> Tìm sách
               </Link>
             </Button>
