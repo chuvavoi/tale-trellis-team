@@ -177,7 +177,7 @@ function BookDetail() {
 
               <TabsContent value="toc" className="mt-6">
                 <ol className="space-y-2">
-                  {book.toc.map((item, i) => (
+                  {book.toc.map((item: string, i: number) => (
                     <li
                       key={i}
                       className="flex gap-3 py-2 border-b border-border last:border-0"
