@@ -2,36 +2,50 @@ import { useSyncExternalStore } from "react";
 
 const KEY = "tramsach.favorites";
 const listeners = new Set<() => void>();
+const EMPTY: string[] = [];
+let cache: string[] | null = null;
 
-function read(): string[] {
-  if (typeof window === "undefined") return [];
+function loadFromStorage(): string[] {
+  if (typeof window === "undefined") return EMPTY;
   try {
-    return JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    const parsed = JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    return Array.isArray(parsed) ? parsed : EMPTY;
   } catch {
-    return [];
+    return EMPTY;
   }
 }
 
+function getSnapshot(): string[] {
+  if (cache === null) cache = loadFromStorage();
+  return cache;
+}
+
+function getServerSnapshot(): string[] {
+  return EMPTY;
+}
+
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => {
+    listeners.delete(cb);
+  };
+}
+
 function write(ids: string[]) {
-  localStorage.setItem(KEY, JSON.stringify(ids));
+  cache = ids;
+  if (typeof window !== "undefined") {
+    localStorage.setItem(KEY, JSON.stringify(ids));
+  }
   listeners.forEach((l) => l());
 }
 
 export function useFavorites() {
-  const ids = useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb);
-      return () => listeners.delete(cb);
-    },
-    read,
-    () => [],
-  );
-
+  const ids = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   return {
     ids,
     has: (id: string) => ids.includes(id),
     toggle: (id: string) => {
-      const cur = read();
+      const cur = getSnapshot();
       write(cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]);
     },
   };

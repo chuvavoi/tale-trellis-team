@@ -10,7 +10,9 @@ export type Book = {
   pages: number;
   year: number;
   description: string;
-  excerpt: string;
+  preface: string; // Lời nói đầu (miễn phí)
+  toc: string[]; // Mục lục (miễn phí)
+  fullContent: string; // Nội dung đầy đủ (cần thuê)
 };
 
 export const categories = [
@@ -22,6 +24,17 @@ export const categories = [
   "Thiếu nhi",
   "Kỹ năng",
 ];
+
+const longSample = (title: string) =>
+  `Đây là toàn bộ nội dung của "${title}". Bạn có thể đọc thoải mái trong thời gian thuê.\n\n` +
+  Array.from({ length: 6 })
+    .map(
+      (_, i) =>
+        `Chương ${i + 1}. Lorem ipsum dolor sit amet, consectetur adipiscing elit. ` +
+        `Nulla facilisi. Mỗi trang sách là một bước chân nhỏ trên hành trình lớn của tri thức. ` +
+        `Người đọc kiên nhẫn sẽ tìm thấy ánh sáng giữa những con chữ tưởng chừng quen thuộc...`,
+    )
+    .join("\n\n");
 
 export const books: Book[] = [
   {
@@ -37,8 +50,15 @@ export const books: Book[] = [
     year: 1936,
     description:
       "Cuốn sách kinh điển về nghệ thuật ứng xử, giao tiếp và xây dựng mối quan hệ.",
-    excerpt:
-      "Bất kỳ ai cũng có thể chỉ trích, oán trách và than phiền — và phần lớn những kẻ ngu xuẩn đều làm thế. Nhưng phải là người biết tự chủ và có một tâm hồn cao thượng mới có thể hiểu và biết tha thứ...",
+    preface:
+      "Trong gần một thế kỷ qua, Đắc Nhân Tâm đã đồng hành cùng hàng triệu độc giả trên hành trình hoàn thiện bản thân. Cuốn sách không dạy bạn cách thao túng người khác — nó dạy bạn cách thấu hiểu.",
+    toc: [
+      "Phần 1: Nghệ thuật ứng xử căn bản",
+      "Phần 2: Sáu cách tạo thiện cảm",
+      "Phần 3: 12 cách thuyết phục người khác",
+      "Phần 4: Trở thành nhà lãnh đạo",
+    ],
+    fullContent: longSample("Đắc Nhân Tâm"),
   },
   {
     id: "2",
@@ -53,8 +73,15 @@ export const books: Book[] = [
     year: 1936,
     description:
       "Tiểu thuyết trào phúng về xã hội Việt Nam thời thực dân nửa phong kiến.",
-    excerpt:
-      "Xuân tóc đỏ — một kẻ vô học bỗng chốc trở thành người nổi tiếng nhờ những trò may rủi của thời cuộc. Câu chuyện phơi bày sự lố lăng của xã hội thượng lưu...",
+    preface:
+      "Số Đỏ — bức tranh trào phúng sắc bén về một xã hội đảo điên, nơi sự giả tạo lên ngôi và những kẻ vô học bỗng chốc trở thành 'người văn minh'.",
+    toc: [
+      "Chương I — Xuân tóc đỏ vào nghề",
+      "Chương V — Cuộc cải cách của ông Phán mọc sừng",
+      "Chương X — Một đám ma gương mẫu",
+      "Chương XX — Hạnh phúc của một tang gia",
+    ],
+    fullContent: longSample("Số Đỏ"),
   },
   {
     id: "3",
@@ -69,8 +96,15 @@ export const books: Book[] = [
     year: 2011,
     description:
       "Lược sử loài người — hành trình từ thời kỳ đồ đá đến kỷ nguyên công nghệ.",
-    excerpt:
-      "100.000 năm trước, có ít nhất sáu loài người sinh sống trên Trái Đất. Hôm nay chỉ còn lại một. Chúng ta. Homo sapiens. Làm thế nào loài chúng ta thống trị hành tinh?",
+    preface:
+      "100.000 năm trước, có ít nhất sáu loài người sinh sống trên Trái Đất. Hôm nay chỉ còn lại một. Cuốn sách này kể câu chuyện về việc chúng ta đã trở thành chính mình như thế nào.",
+    toc: [
+      "Phần 1: Cách mạng Nhận thức",
+      "Phần 2: Cách mạng Nông nghiệp",
+      "Phần 3: Sự thống nhất của loài người",
+      "Phần 4: Cách mạng Khoa học",
+    ],
+    fullContent: longSample("Sapiens"),
   },
   {
     id: "4",
@@ -85,8 +119,15 @@ export const books: Book[] = [
     year: 1988,
     description:
       "Câu chuyện về Santiago — chàng chăn cừu đi tìm kho báu và khám phá bản thân.",
-    excerpt:
-      "Khi bạn thực sự khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó. Đây là chân lý lớn nhất trên Trái Đất...",
+    preface:
+      "Khi bạn thực sự khao khát một điều gì đó, cả vũ trụ sẽ hợp lực giúp bạn đạt được điều đó. Đây là khởi đầu của một hành trình.",
+    toc: [
+      "Phần Một — Giấc mơ của Santiago",
+      "Phần Hai — Sa mạc và những dấu hiệu",
+      "Phần Ba — Kim tự tháp",
+      "Vĩ thanh",
+    ],
+    fullContent: longSample("Nhà Giả Kim"),
   },
   {
     id: "5",
@@ -101,8 +142,15 @@ export const books: Book[] = [
     year: 2001,
     description:
       "Hành trình khám phá vũ trụ qua lăng kính vật lý lý thuyết hiện đại.",
-    excerpt:
-      "Ai đó đã từng nói rằng tôi đã đặt cả vũ trụ vào vỏ hạt dẻ. Có lẽ ý họ là khả năng tóm gọn những ý tưởng phức tạp về không-thời gian...",
+    preface:
+      "Có lẽ bạn nghĩ vật lý lý thuyết là khó. Nhưng vũ trụ vốn dĩ giản dị hơn ta tưởng — chỉ cần một góc nhìn đúng.",
+    toc: [
+      "Chương 1 — Lược sử thuyết tương đối",
+      "Chương 2 — Hình dạng của thời gian",
+      "Chương 3 — Vũ trụ trong vỏ hạt dẻ",
+      "Chương 4 — Tiên đoán tương lai",
+    ],
+    fullContent: longSample("Vũ Trụ Trong Vỏ Hạt Dẻ"),
   },
   {
     id: "6",
@@ -117,8 +165,15 @@ export const books: Book[] = [
     year: 1941,
     description:
       "Cuộc phiêu lưu thú vị của chú Dế Mèn qua những vùng đất mới lạ.",
-    excerpt:
-      "Tôi sống độc lập từ thuở bé. Ấy là tục lệ lâu đời trong họ nhà dế chúng tôi. Vả lại, mẹ thường bảo chúng tôi rằng: phải như thế để các con biết kiếm ăn một mình...",
+    preface:
+      "Tôi sống độc lập từ thuở bé. Ấy là tục lệ lâu đời trong họ nhà dế chúng tôi...",
+    toc: [
+      "Chương 1 — Tuổi thơ của Dế Mèn",
+      "Chương 2 — Bài học đường đời đầu tiên",
+      "Chương 5 — Gặp Dế Trũi",
+      "Chương 10 — Hội nghị muôn loài",
+    ],
+    fullContent: longSample("Dế Mèn Phiêu Lưu Ký"),
   },
   {
     id: "7",
@@ -132,8 +187,10 @@ export const books: Book[] = [
     pages: 290,
     year: 2016,
     description: "Cẩm nang truyền cảm hứng cho người trẻ trên hành trình tự khám phá.",
-    excerpt:
-      "Tuổi trẻ là khoảng thời gian đẹp nhất và cũng dễ tổn thương nhất. Hãy sống sao cho khi nhìn lại, bạn không phải hối tiếc vì những điều mình đã không làm...",
+    preface:
+      "Tuổi trẻ là khoảng thời gian đẹp nhất và cũng dễ tổn thương nhất. Cuốn sách này là một người bạn đồng hành.",
+    toc: ["Học", "Đi", "Đọc", "Viết & sống"],
+    fullContent: longSample("Tuổi Trẻ Đáng Giá Bao Nhiêu"),
   },
   {
     id: "8",
@@ -147,8 +204,10 @@ export const books: Book[] = [
     pages: 368,
     year: 1949,
     description: "Tác phẩm dystopia kinh điển về một xã hội bị giám sát toàn trị.",
-    excerpt:
-      "Đó là một ngày tháng Tư lạnh giá và trong sáng, đồng hồ điểm mười ba giờ. Winston Smith, cằm rụt vào ngực để tránh gió rét, lướt nhanh qua cánh cửa kính...",
+    preface:
+      "Đó là một ngày tháng Tư lạnh giá và trong sáng, đồng hồ điểm mười ba giờ. Winston Smith bước vào một thế giới nơi sự thật bị viết lại mỗi ngày.",
+    toc: ["Phần Một — Winston", "Phần Hai — Julia", "Phần Ba — Phòng 101", "Phụ lục — Tân ngữ"],
+    fullContent: longSample("1984"),
   },
 ];
 

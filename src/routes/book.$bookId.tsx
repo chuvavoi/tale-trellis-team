@@ -1,5 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Calendar, Heart, Star, Users } from "lucide-react";
+import { ArrowLeft, BookOpen, Calendar, Heart, Lock, Star, Users } from "lucide-react";
+import { format } from "date-fns";
 import { Layout } from "@/components/Layout";
 import { getBookById, books } from "@/data/books";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,9 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { useFavorites } from "@/lib/favorites";
+import { useRentals } from "@/lib/rentals";
 import { BookCard } from "@/components/BookCard";
+import { RentDialog } from "@/components/RentDialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/book/$bookId")({
@@ -35,8 +38,15 @@ export const Route = createFileRoute("/book/$bookId")({
 function BookDetail() {
   const book = Route.useLoaderData();
   const { toggle, has } = useFavorites();
+  const { get: getRental, hasAccess, cancel } = useRentals();
   const fav = has(book.id);
-  const related = books.filter((b) => b.category === book.category && b.id !== book.id).slice(0, 4);
+  const rental = getRental(book.id);
+  const access = hasAccess(book.id);
+  const expired = !!rental && !access;
+
+  const related = books
+    .filter((b) => b.category === book.category && b.id !== book.id)
+    .slice(0, 4);
 
   return (
     <Layout>
@@ -61,6 +71,35 @@ function BookDetail() {
               </div>
               <div className="text-xs opacity-80">{book.author}</div>
             </div>
+
+            {rental && (
+              <div
+                className={`mt-4 rounded-xl border p-4 text-sm ${
+                  access
+                    ? "border-primary/40 bg-primary/5"
+                    : "border-destructive/40 bg-destructive/5"
+                }`}
+              >
+                <div className="font-medium">
+                  {access ? "Đang thuê" : "Đã hết hạn"}
+                </div>
+                <div className="text-muted-foreground mt-1">
+                  {format(new Date(rental.start), "dd/MM/yyyy")} —{" "}
+                  {format(new Date(rental.end), "dd/MM/yyyy")}
+                </div>
+                {access && (
+                  <button
+                    onClick={() => {
+                      cancel(book.id);
+                      toast("Đã hủy thuê");
+                    }}
+                    className="mt-2 text-xs text-muted-foreground underline hover:text-foreground"
+                  >
+                    Hủy thuê
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           <div>
@@ -92,13 +131,21 @@ function BookDetail() {
             </div>
 
             <div className="mt-8 flex flex-wrap gap-3">
-              <Button
-                size="lg"
-                className="rounded-full"
-                onClick={() => toast.success(`Đã mượn "${book.title}"!`, { description: "Vui lòng đến lấy trong 24h." })}
-              >
-                Mượn ngay
-              </Button>
+              {access ? (
+                <Button size="lg" className="rounded-full" disabled>
+                  Đang trong thời gian thuê
+                </Button>
+              ) : (
+                <RentDialog
+                  bookId={book.id}
+                  bookTitle={book.title}
+                  trigger={
+                    <Button size="lg" className="rounded-full">
+                      {expired ? "Gia hạn thuê" : "Thuê sách"}
+                    </Button>
+                  }
+                />
+              )}
               <Button
                 size="lg"
                 variant="outline"
@@ -113,33 +160,71 @@ function BookDetail() {
               </Button>
             </div>
 
-            <Tabs defaultValue="overview" className="mt-10">
+            <Tabs defaultValue="preface" className="mt-10">
               <TabsList>
-                <TabsTrigger value="overview">Tổng quan</TabsTrigger>
-                <TabsTrigger value="excerpt">Đọc thử</TabsTrigger>
-                <TabsTrigger value="details">Chi tiết</TabsTrigger>
+                <TabsTrigger value="preface">Lời nói đầu</TabsTrigger>
+                <TabsTrigger value="toc">Mục lục</TabsTrigger>
+                <TabsTrigger value="full">Nội dung đầy đủ</TabsTrigger>
               </TabsList>
-              <TabsContent value="overview" className="mt-6 text-muted-foreground leading-relaxed">
-                {book.description}
+
+              <TabsContent
+                value="preface"
+                className="mt-6 text-muted-foreground leading-relaxed"
+              >
+                <p className="font-serif text-lg italic">{book.preface}</p>
+                <p className="mt-3 text-xs">Phần này miễn phí cho mọi người đọc.</p>
               </TabsContent>
-              <TabsContent value="excerpt" className="mt-6">
-                <div className="rounded-xl bg-secondary/60 p-6 font-serif text-lg leading-relaxed italic">
-                  "{book.excerpt}"
-                </div>
+
+              <TabsContent value="toc" className="mt-6">
+                <ol className="space-y-2">
+                  {book.toc.map((item, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-3 py-2 border-b border-border last:border-0"
+                    >
+                      <span className="text-muted-foreground w-6">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="mt-4 text-xs text-muted-foreground">
+                  Phần này miễn phí cho mọi người đọc.
+                </p>
               </TabsContent>
-              <TabsContent value="details" className="mt-6">
-                <dl className="grid grid-cols-2 gap-y-3 text-sm">
-                  <dt className="text-muted-foreground">Tác giả</dt>
-                  <dd>{book.author}</dd>
-                  <dt className="text-muted-foreground">Thể loại</dt>
-                  <dd>{book.category}</dd>
-                  <dt className="text-muted-foreground">Số trang</dt>
-                  <dd>{book.pages}</dd>
-                  <dt className="text-muted-foreground">Năm xuất bản</dt>
-                  <dd>{book.year}</dd>
-                  <dt className="text-muted-foreground">Đánh giá</dt>
-                  <dd>{book.rating}/5</dd>
-                </dl>
+
+              <TabsContent value="full" className="mt-6">
+                {access ? (
+                  <div className="rounded-xl bg-secondary/60 p-6 font-serif text-base leading-relaxed whitespace-pre-line">
+                    {book.fullContent}
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-dashed border-border p-10 text-center">
+                    <div className="size-12 mx-auto rounded-full bg-secondary flex items-center justify-center mb-3">
+                      <Lock className="size-5 text-muted-foreground" />
+                    </div>
+                    <h3 className="font-serif text-xl">
+                      {expired ? "Thuê sách đã hết hạn" : "Nội dung dành cho người thuê"}
+                    </h3>
+                    <p className="mt-2 text-sm text-muted-foreground max-w-sm mx-auto">
+                      {expired
+                        ? "Vui lòng gia hạn để tiếp tục đọc toàn bộ nội dung."
+                        : "Thuê sách để mở khóa toàn bộ nội dung. Bạn vẫn được đọc miễn phí Lời nói đầu và Mục lục."}
+                    </p>
+                    <div className="mt-5">
+                      <RentDialog
+                        bookId={book.id}
+                        bookTitle={book.title}
+                        trigger={
+                          <Button className="rounded-full">
+                            {expired ? "Gia hạn ngay" : "Thuê ngay"}
+                          </Button>
+                        }
+                      />
+                    </div>
+                  </div>
+                )}
               </TabsContent>
             </Tabs>
           </div>
