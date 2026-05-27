@@ -1,7 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { format } from "date-fns";
 import { Layout } from "@/components/Layout";
 import { useFavorites } from "@/lib/favorites";
-import { books } from "@/data/books";
+import { useRentals, isRentalActive } from "@/lib/rentals";
+import { getBookById } from "@/data/books";
 import { BookOpen, Clock, Heart, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
@@ -10,12 +12,14 @@ export const Route = createFileRoute("/profile")({
 
 function Profile() {
   const { ids } = useFavorites();
-  const borrowing = books.slice(0, 2);
+  const { list } = useRentals();
+  const active = list.filter((r) => isRentalActive(r));
+  const expired = list.filter((r) => !isRentalActive(r));
 
   const stats = [
-    { label: "Đang mượn", value: borrowing.length, icon: BookOpen },
+    { label: "Đang thuê", value: active.length, icon: BookOpen },
     { label: "Yêu thích", value: ids.length, icon: Heart },
-    { label: "Đã đọc", value: 24, icon: Clock },
+    { label: "Đã hết hạn", value: expired.length, icon: Clock },
   ];
 
   return (
@@ -49,28 +53,77 @@ function Profile() {
           })}
         </div>
 
-        <h2 className="font-serif text-2xl mt-12 mb-4">Đang mượn</h2>
-        <div className="space-y-3">
-          {borrowing.map((b) => (
-            <div
-              key={b.id}
-              className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border"
-            >
-              <div
-                className={`size-14 rounded-md bg-gradient-to-br ${b.cover} flex-shrink-0`}
-              />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium truncate">{b.title}</div>
-                <div className="text-sm text-muted-foreground">{b.author}</div>
-              </div>
-              <div className="text-xs text-muted-foreground text-right">
-                Trả trước
-                <br />
-                <span className="text-foreground font-medium">28/05/2026</span>
-              </div>
+        <h2 className="font-serif text-2xl mt-12 mb-4">Đang thuê</h2>
+        {active.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Bạn chưa thuê cuốn nào. Hãy ghé{" "}
+            <Link to="/catalog" className="underline">
+              danh mục
+            </Link>{" "}
+            và bắt đầu hành trình đọc!
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {active.map((r) => {
+              const b = getBookById(r.bookId);
+              if (!b) return null;
+              return (
+                <Link
+                  key={r.bookId}
+                  to="/book/$bookId"
+                  params={{ bookId: r.bookId }}
+                  className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border hover:border-primary/40 transition-colors"
+                >
+                  <div
+                    className={`size-14 rounded-md bg-gradient-to-br ${b.cover} flex-shrink-0`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium truncate">{b.title}</div>
+                    <div className="text-sm text-muted-foreground">{b.author}</div>
+                  </div>
+                  <div className="text-xs text-muted-foreground text-right">
+                    Trả trước
+                    <br />
+                    <span className="text-foreground font-medium">
+                      {format(new Date(r.end), "dd/MM/yyyy")}
+                    </span>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
+
+        {expired.length > 0 && (
+          <>
+            <h2 className="font-serif text-2xl mt-12 mb-4">Đã hết hạn</h2>
+            <div className="space-y-3">
+              {expired.map((r) => {
+                const b = getBookById(r.bookId);
+                if (!b) return null;
+                return (
+                  <Link
+                    key={r.bookId}
+                    to="/book/$bookId"
+                    params={{ bookId: r.bookId }}
+                    className="flex items-center gap-4 p-4 rounded-xl bg-card border border-border opacity-70 hover:opacity-100"
+                  >
+                    <div
+                      className={`size-14 rounded-md bg-gradient-to-br ${b.cover} flex-shrink-0 grayscale`}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{b.title}</div>
+                      <div className="text-sm text-muted-foreground">
+                        Hết hạn ngày {format(new Date(r.end), "dd/MM/yyyy")}
+                      </div>
+                    </div>
+                    <span className="text-xs text-primary">Gia hạn</span>
+                  </Link>
+                );
+              })}
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </section>
     </Layout>
   );
